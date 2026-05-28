@@ -175,6 +175,96 @@
   .trans .t-lab b { color: var(--wine); }
   .trans p { font-style: italic; color: var(--ink-soft); margin: 0; font-size: 16px; text-align: left; }
 
+  /* PUSHKIN DRAWINGS */
+  .pdraw {
+    margin: 26px auto; max-width: 100%;
+    text-align: center;
+  }
+  .pdraw .frame {
+    display: inline-block; padding: 14px 14px 8px;
+    background: var(--paper); border: 1px solid var(--line);
+    box-shadow: 0 4px 16px rgba(120,90,30,0.15);
+    position: relative;
+  }
+  .pdraw .frame::before {
+    content: ''; position: absolute; inset: 4px;
+    border: 1px solid rgba(168,132,44,0.25); pointer-events: none;
+  }
+  .pdraw img {
+    display: block; max-width: 100%; height: auto;
+    filter: sepia(0.45) saturate(0.8) contrast(1.05);
+    max-height: 360px;
+  }
+  .pdraw.small img { max-height: 200px; }
+  .pdraw .cap {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic; font-size: 14px; color: var(--ink-soft);
+    margin-top: 10px; max-width: 480px; line-height: 1.4;
+  }
+  .pdraw .cap b { font-style: normal; color: var(--wine); font-family: 'Playfair Display', serif; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; display: block; margin-bottom: 4px; }
+  .pdraw.no-load { display: none; }
+
+  /* MARGINAL DOODLES — рисунки, плывущие сбоку при прокрутке.
+     Каждый рисунок крепится к конкретной станции, чтобы при скролле
+     создавалось впечатление, что мы листаем тетрадь поэта и рядом
+     с текстом вдруг появляется набросок на полях. */
+  .walk { position: relative; }   /* контейнер, относительно которого позиционируются рисунки */
+  .margin-doodle {
+    position: absolute;
+    pointer-events: none;    /* не мешают клику по тексту */
+    opacity: 0;              /* появляются плавно при загрузке */
+    transition: opacity 1.2s ease;
+    z-index: 1;
+  }
+  .margin-doodle.loaded { opacity: 0.7; }
+  .margin-doodle img {
+    width: 100%; height: auto; display: block;
+    filter: sepia(0.65) saturate(0.7) contrast(0.95);
+    /* лёгкая виньетка по краям, чтобы рисунки выглядели как старая бумага */
+    mask-image: radial-gradient(ellipse at center, black 60%, transparent 100%);
+    -webkit-mask-image: radial-gradient(ellipse at center, black 60%, transparent 100%);
+  }
+  /* Положение слева — выезжают за левый край колонки текста */
+  .margin-doodle.left  { left: -210px; }
+  /* Положение справа — выезжают за правый край */
+  .margin-doodle.right { right: -210px; }
+
+  /* На узких экранах поля исчезают — прячем все маргиналии,
+     иначе они залезут на текст */
+  @media (max-width: 1180px) {
+    .margin-doodle { display: none; }
+  }
+
+  /* HERO PUSHKIN DRAWING - decorative corner */
+  .hero-draw {
+    position: absolute; top: 60px; right: 60px;
+    width: 130px; height: auto; opacity: 0.55;
+    filter: sepia(0.6) saturate(0.7);
+    z-index: 1; pointer-events: none;
+  }
+  @media (max-width: 760px) { .hero-draw { display: none; } }
+
+  /* INTRO drawings explainer */
+  .draw-explain {
+    background: var(--paper); border: 1px solid var(--gold);
+    padding: 22px 26px; margin: 30px 0;
+    display: grid; grid-template-columns: 110px 1fr; gap: 22px; align-items: center;
+  }
+  .draw-explain img {
+    width: 110px; height: auto;
+    filter: sepia(0.55) saturate(0.75); border: 1px solid var(--line);
+  }
+  .draw-explain h3 {
+    font-family: 'Playfair Display', serif; font-size: 13px;
+    letter-spacing: 0.18em; text-transform: uppercase; color: var(--wine);
+    margin-bottom: 10px;
+  }
+  .draw-explain p { font-size: 15px; margin: 0; line-height: 1.55; }
+  @media (max-width: 640px) {
+    .draw-explain { grid-template-columns: 1fr; text-align: center; }
+    .draw-explain img { margin: 0 auto; width: 140px; }
+  }
+
   /* PASSWORD BAR */
   .pwd-bar { position: fixed; bottom: 0; left:0; right:0; background: rgba(43,36,25,.97); border-top: 2px solid var(--gold); padding: 12px 16px; z-index: 1000; display:flex; align-items:center; justify-content:center; gap: 14px; transform: translateY(100%); transition: transform .4s; }
   .pwd-bar.on { transform: translateY(0); }
@@ -212,6 +302,7 @@
 
 <!-- HERO -->
 <section class="hero">
+  <img class="hero-draw" src="https://commons.wikimedia.org/wiki/Special:FilePath/Aleksandr%20Pushkin%20-%20self-portrait%20as%20Dante.jpg?width=260" alt="" onerror="this.style.display='none'">
   <div class="crest">❦</div>
   <div class="kicker">Познавательный квест для тех, кто читает «Онегина» · 8–9 класс</div>
   <h1>Онегинский<br><em>Петербургъ</em></h1>
@@ -238,6 +329,14 @@
 
   <div class="howto">
     <b>Как играть.</b> На каждой из десяти точек — загадка по тексту романа. Ответ — слово (имя героя, предмет, понятие). Система сама возьмёт из него нужную букву и добавит в пароль внизу экрана. Соберёшь все десять — узнаешь слово, которым в пушкинскую эпоху называли город. Подсказок к загадкам нет: это квест для тех, кто читал.
+  </div>
+
+  <div class="draw-explain">
+    <img src="https://commons.wikimedia.org/wiki/Special:FilePath/Alexander%20Pushkin%20Drawing%20from%20manuscript.jpg?width=220" alt="Рисунок Пушкина на полях рукописи" onerror="this.parentElement.style.display='none'">
+    <div>
+      <h3>Рисунки Пушкина на полях</h3>
+      <p>Пушкин рисовал постоянно — на полях черновиков «Онегина», в письмах, на обороте стихов. Биографы называют это «графическим дневником поэта»: он набрасывал профили героев, друзей, любимых женщин, врагов, виселицы декабристов, женские ножки, лошадей и автопортреты в разных настроениях. По ходу прогулки ты будешь встречать эти рисунки рядом с теми точками, к которым они относятся: на набережной — там, где Пушкин сам нарисовал Онегина и себя у Невы; в ресторане Talon — портрет Онегина руки самого автора; на Невском — Анна Керн, которой посвящено «Я помню чудное мгновенье»; на Мойке — последние манускрипты.</p>
+    </div>
   </div>
 
   <div class="logi">
@@ -341,6 +440,11 @@ const stations = [
     fact: { tag: "Забавный случай", paras: [
       "В 1829 году художник Нотбек нарисовал к этой сцене картинку — но перенёс её совсем в другое место города и повернул Пушкина с Онегиным лицом к зрителю. Поэт рассердился и ответил язвительной шуткой-эпиграммой. Так он сам как бы «подтвердил», где на самом деле стоит сцена — на Дворцовой набережной."
     ]},
+    drawing: {
+      file: "Pushkin Onegin.jpg",
+      title: "А. С. Пушкин. Автопортрет с Онегиным на набережной Невы. 1824",
+      text: " Рисунок из письма к брату Льву. На полях сам Пушкин подписал, кто есть кто: «1 хорош (Онегин). 2 должен быть опершися на гранит (это я). 3 лодка. 4 Крепость Петропавловская». Так выглядит описанная в романе сцена — глазами самого автора."
+    },
     riddle: { q: "На брегах какой реки стоит весь пушкинский Петербург и происходит эта сцена? Назови реку.", answer: "НЕВА", pos: 2 }
   },
   {
@@ -412,6 +516,11 @@ const stations = [
     fact: { tag: "Ещё одно слово", paras: [
       "«Недремлющий брегет» — дорогие карманные часы с боем парижской фирмы Брегé. Они отбивали часы и четверти и могли будить хозяина — поэтому «недремлющий». Стоили целое состояние и были знаком статуса."
     ]},
+    drawing: {
+      file: "A. P. Kern 1829.jpg",
+      title: "А. С. Пушкин. Портрет Анны Керн. 1829",
+      text: " Анна Петровна Керн — племянница соседки Пушкина по Михайловскому. Поэт познакомился с ней в петербургском доме Олениных в 1819 году — как раз в годы действия первой главы «Онегина». Через шесть лет он напишет ей знаменитое «Я помню чудное мгновенье...» Этот её портрет Пушкин нарисовал на полях своей рукописи."
+    },
     riddle: { q: "Как называется широкополая модная шляпа, которую Онегин надевает, выезжая на бульвар, — названная в честь южноамериканского борца за свободу?", answer: "БОЛИВАР", pos: 1 }
   },
   {
@@ -430,6 +539,11 @@ const stations = [
     fact: { tag: "Факт", paras: [
       "Пушкин поставил к фамилии Каверина сноску, а Talon назвал «известным ресторатором». Литературоведы шутят, что это первая «скрытая реклама» в русской литературе — Пушкин называл реальные модные места и людей, которых читатели сразу узнавали."
     ]},
+    drawing: {
+      file: "Eugene Onegin's portrait by Pushkin.jpg",
+      title: "А. С. Пушкин. Портрет Евгения Онегина",
+      text: " Тот самый Онегин, который только что вошёл в ресторан Talon — глазами автора. Пушкин не раз набрасывал портреты своего героя на полях рукописей: в плаще, в цилиндре, в профиль. Так выглядит главный денди русской литературы в представлении самого Пушкина."
+    },
     riddle: { q: "Имя реального друга Пушкина — лихого гусара, который «уж ждёт» Онегина в ресторане Talon. Назови его фамилию.", answer: "КАВЕРИН", pos: 5 }
   },
   {
@@ -448,6 +562,11 @@ const stations = [
     fact: { tag: "Кто здесь бывал", paras: [
       "В Демутовом трактире останавливались Грибоедов, Батюшков, Тургенев, Герцен. Гоголь специально пришёл сюда знакомиться с Пушкиным — но лакей сказал, что хозяин спит, потому что «всю ночь в картишки играл»."
     ]},
+    drawing: {
+      file: "Aleksandr Pushkin - self-portrait as Dante.jpg",
+      title: "А. С. Пушкин. Автопортрет",
+      text: " Один из многочисленных автопортретов поэта на полях рукописей. Биографы насчитали более девяноста таких автопортретов в разных настроениях и образах. Именно с таким лицом Пушкин и склонялся над рукописью «Онегина» в десятом номере Демутова трактира."
+    },
     riddle: { q: "Что курили в кабинете Онегина и его прототипа Чаадаева — предмет с янтарным мундштуком, привозимый с Востока? Назови предмет (то, что набивают табаком).", answer: "ТРУБКА", pos: 3 }
   },
   {
@@ -522,6 +641,16 @@ stations.forEach((st, idx) => {
     <div class="verse">${st.verse}<cite>${st.cite}</cite></div>
   `;
   st.paras.forEach(p => html += `<p>${p}</p>`);
+  if (st.drawing) {
+    const sizeClass = st.drawing.small ? ' small' : '';
+    const url = `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(st.drawing.file)}?width=600`;
+    html += `<div class="pdraw${sizeClass}" id="draw-${st.id}">
+      <div class="frame">
+        <img src="${url}" alt="${st.drawing.title}" onerror="document.getElementById('draw-${st.id}').classList.add('no-load')">
+      </div>
+      <div class="cap"><b>${st.drawing.title}</b>${st.drawing.text}</div>
+    </div>`;
+  }
   if (st.word) html += `<div class="word-box"><span class="w-tag">${st.word.tag}</span><div class="w-term">${st.word.term}</div><p style="margin:0;">${st.word.text}</p></div>`;
   if (st.fact) {
     html += `<div class="fact"><span class="f-tag">${st.fact.tag}</span>`;
@@ -555,6 +684,104 @@ stations.forEach(st => {
   L.marker(st.coords, { icon }).addTo(map).bindPopup(`<b>${st.id}. ${st.title.replace(/<[^>]+>/g,'')}</b><br>${st.addr}`);
 });
 map.fitBounds(L.latLngBounds(routeCoords), { padding: [50, 50] });
+
+// ─── МАРГИНАЛИИ: рисунки Пушкина на полях маршрута ─────────────────────
+// Каждый объект — один рисунок «на полях». Поля:
+//   file   — имя файла на Wikimedia Commons (загружается через Special:FilePath)
+//   alt    — описание для accessibility (что на рисунке)
+//   anchor — id станции, к верхней границе которой крепится рисунок
+//   side   — на какой стороне страницы появится: 'left' или 'right'
+//   topOffset — сдвиг вниз от заголовка станции, в пикселях
+//                  (нужен, чтобы рисунок не наезжал на заголовок станции)
+//   width  — ширина в пикселях; разные размеры создают живой ритм
+//   rotate — угол поворота в градусах; имитирует небрежный набросок
+const marginDoodles = [
+  // У Летнего сада — лицейский друг Пушкина, князь Горчаков.
+  // Логично: лицейская дружба, юность, начало маршрута.
+  { file: 'Gorchakov by Pushkin.jpg', alt: 'Князь А. М. Горчаков',
+    anchor: 1, side: 'right', topOffset: 180, width: 130, rotate: -4 },
+
+  // У Дворцовой набережной — автопортрет Пушкина в виде казака.
+  // Поэт у Невы, на ветру — образ романтической позы.
+  { file: 'Alexander Puschkin Selbstbildnis als Kosak.jpg', alt: 'Автопортрет Пушкина в виде казака',
+    anchor: 2, side: 'left',  topOffset: 280, width: 140, rotate: 5 },
+
+  // У Миллионной — рисунок Пушкина из черновика (фрагмент рукописи).
+  // Создаёт ощущение, что мы листаем настоящие черновики.
+  { file: 'Alexander Pushkin Drawing from manuscript.jpg', alt: 'Рисунок из черновика Пушкина',
+    anchor: 3, side: 'right', topOffset: 200, width: 150, rotate: -6 },
+
+  // У Дворцовой площади — портрет графини Воронцовой,
+  // в которую Пушкин был влюблён в южной ссылке (1823–1824).
+  // Связь со столичной аристократией.
+  { file: 'Elisabeth Vorontsova.jpg', alt: 'Графиня Е. К. Воронцова',
+    anchor: 4, side: 'left',  topOffset: 220, width: 130, rotate: 3 },
+
+  // У Адмиралтейства — рисунок Пушкина к «Сказке о попе и работнике Балде».
+  // Тут пятно «другой» Пушкин — сказочник, не денди.
+  { file: 'Сказка о попе рисунок Пушкина.jpg', alt: 'Рисунок к «Сказке о попе»',
+    anchor: 5, side: 'right', topOffset: 240, width: 160, rotate: -3 },
+
+  // На Невском — Долли Фикельмон, светская красавица пушкинской эпохи.
+  // Внучка Кутузова, хозяйка модного салона на Невском.
+  { file: 'Dolly Ficquelmont1.jpg', alt: 'Долли Фикельмон',
+    anchor: 6, side: 'right', topOffset: 260, width: 130, rotate: 4 },
+
+  // У Демутова трактира — пушкинская рукопись «Гробовщика».
+  // Здесь, по соседству с местом написания «Онегина»,
+  // Пушкин позже работал и над «Повестями Белкина».
+  { file: 'Гробовщик рукопись Пушкина.jpg', alt: 'Рукопись «Гробовщика»',
+    anchor: 8, side: 'right', topOffset: 200, width: 140, rotate: -5 },
+
+  // На Мойке, 12 — рисунок «Пушкин и Мицкевич» (Мицкевич — близкий
+  // польский друг Пушкина петербургского периода).
+  { file: 'А. Міцкевіч і А. Пушкін. Малюнак А. Пушкіна.jpg',
+    alt: 'Пушкин и Мицкевич, рисунок Пушкина',
+    anchor: 9, side: 'left',  topOffset: 260, width: 150, rotate: 4 },
+
+  // Финальная маргиналия у Театральной площади — портрет Калипсо
+  // (нимфы, балетной героини). Связь с миром театра и танца.
+  { file: 'Портрет Калипсо.jpg', alt: 'Портрет Калипсо',
+    anchor: 10, side: 'right', topOffset: 220, width: 130, rotate: -4 }
+];
+
+// Функция размещения маргиналий: запускается после того, как
+// все карточки станций отрендерены и им присвоены реальные координаты.
+function placeMargins() {
+  marginDoodles.forEach((d, i) => {
+    // Находим карточку нужной станции по индексу: точки от 1 до 10
+    // соответствуют детям контейнера .walk с учётом блоков-переходов.
+    const stationEls = document.querySelectorAll('.station');
+    const anchorEl = stationEls[d.anchor - 1];
+    if (!anchorEl) return;
+
+    // Создаём элемент рисунка с подстраховкой на случай,
+    // если файл на Wikimedia вдруг переименовали.
+    const el = document.createElement('div');
+    el.className = `margin-doodle ${d.side}`;
+    el.style.top = (anchorEl.offsetTop + d.topOffset) + 'px';
+    el.style.width = d.width + 'px';
+    el.style.transform = `rotate(${d.rotate}deg)`;
+    el.innerHTML = `<img src="https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(d.file)}?width=400"
+                         alt="${d.alt}"
+                         onload="this.parentElement.classList.add('loaded')"
+                         onerror="this.parentElement.remove()">`;
+    document.querySelector('.walk').appendChild(el);
+  });
+}
+
+// Запускаем размещение после полной отрисовки страницы, чтобы
+// offsetTop у карточек уже был правильным.
+window.addEventListener('load', placeMargins);
+// При изменении размера окна положения сбиваются — пересчитываем.
+let resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    document.querySelectorAll('.margin-doodle').forEach(e => e.remove());
+    placeMargins();
+  }, 200);
+});
 
 // Quest logic
 const PASSWORD = 'ПЕТЕРБУРГЪ';
