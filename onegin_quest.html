@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Онегинский Петербург · познавательный квест</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Marck+Script&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  :root {
+    --cream: #f3ecdc;
+    --cream-2: #eadfca;
+    --paper: #fbf6ea;
+    --ink: #2b2419;
+    --ink-soft: #5a4f3c;
+    --gold: #a8842c;
+    --gold-light: #cfa94e;
+    --wine: #7a2e2a;
+    --wine-light: #9c4540;
+    --blue: #2f4a6b;
+    --green: #4a6149;
+    --line: #d8c9a8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--cream);
+    color: var(--ink);
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 18px;
+    line-height: 1.7;
+  }
+  ::selection { background: var(--gold); color: var(--paper); }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center; padding: 50px 24px;
+    position: relative;
+    background:
+      radial-gradient(ellipse at 50% 30%, rgba(168,132,44,0.10), transparent 60%),
+      linear-gradient(180deg, var(--paper), var(--cream));
+  }
+  .hero::before {
+    content: ''; position: absolute; inset: 22px;
+    border: 2px solid var(--gold); opacity: 0.35; pointer-events: none;
+  }
+  .hero::after {
+    content: ''; position: absolute; inset: 30px;
+    border: 1px solid var(--gold); opacity: 0.25; pointer-events: none;
+  }
+  .hero .crest {
+    font-family: 'Playfair Display', serif;
+    font-size: 30px; color: var(--gold);
+    letter-spacing: 0.5em; margin-bottom: 24px; padding-left: 0.5em;
+  }
+  .hero .kicker {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic; font-size: 17px;
+    letter-spacing: 0.1em; color: var(--ink-soft); margin-bottom: 22px;
+  }
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(46px, 9vw, 104px);
+    font-weight: 600; line-height: 0.98;
+    color: var(--ink); letter-spacing: -0.01em; margin-bottom: 20px;
+  }
+  .hero h1 em { font-style: italic; color: var(--wine); }
+  .hero .sub {
+    font-style: italic; font-size: clamp(19px, 2.6vw, 27px);
+    color: var(--ink-soft); max-width: 640px; margin-bottom: 44px;
+  }
+  .hero .epigraph {
+    max-width: 560px; font-style: italic; color: var(--ink-soft);
+    border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+    padding: 18px 0; margin-bottom: 44px; font-size: 18px; line-height: 1.6;
+  }
+  .hero .epigraph b { display:block; margin-top:10px; font-style: normal; font-family: 'Playfair Display', serif; font-size: 12px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gold); }
+  .hero .stats { display: flex; gap: 40px; flex-wrap: wrap; justify-content: center; margin-bottom: 40px; }
+  .hstat b { display:block; font-family: 'Playfair Display', serif; font-size: 40px; color: var(--wine); line-height: 1; }
+  .hstat span { font-size: 14px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-soft); font-family: 'Playfair Display', serif; }
+  .scroll { font-family:'Playfair Display',serif; font-size: 13px; letter-spacing:0.2em; text-transform: uppercase; color: var(--gold); animation: pulse 2.4s infinite; }
+  @keyframes pulse { 0%,100%{opacity:.4} 50%{opacity:1} }
+
+  /* INTRO */
+  .intro { max-width: 720px; margin: 0 auto; padding: 80px 24px 40px; }
+  .intro h2 { font-family:'Playfair Display',serif; font-size: 40px; font-weight: 600; margin-bottom: 24px; line-height: 1.05; }
+  .intro h2 em { font-style: italic; color: var(--wine); }
+  .intro p { margin-bottom: 18px; text-align: justify; }
+  .intro .lead { font-size: 21px; font-style: italic; color: var(--ink-soft); }
+  .howto {
+    background: var(--paper); border: 1px solid var(--gold);
+    padding: 22px 26px; margin: 26px 0; font-size: 16px;
+  }
+  .howto b { font-family:'Playfair Display',serif; font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold); }
+  .logi { background: var(--cream-2); border-left: 4px solid var(--gold); padding: 22px 26px; margin: 30px 0; }
+  .logi h3 { font-family:'Playfair Display',serif; font-size: 14px; letter-spacing:0.15em; text-transform: uppercase; color: var(--wine); margin-bottom: 14px; }
+  .logi .row { display:flex; justify-content: space-between; gap: 16px; padding: 7px 0; border-bottom: 1px dotted var(--line); font-size: 15px; }
+  .logi .row:last-child { border-bottom: none; }
+  .logi .row span:last-child { font-family:'Playfair Display',serif; font-size: 12px; color: var(--ink-soft); white-space: nowrap; }
+
+  /* MAP */
+  .mapwrap { max-width: 1080px; margin: 0 auto; padding: 40px 24px; }
+  .mapwrap h2 { font-family:'Playfair Display',serif; font-size: 34px; text-align:center; margin-bottom: 8px; }
+  .mapwrap .cap { text-align:center; font-style: italic; color: var(--ink-soft); margin-bottom: 24px; }
+  #map { height: 520px; border: 2px solid var(--gold); box-shadow: 0 10px 36px rgba(120,90,30,0.2); }
+  .leaflet-container { background: #e8dcc0; font-family: 'Cormorant Garamond', serif; }
+  .leaflet-popup-content-wrapper { background: var(--paper); color: var(--ink); border-radius: 0; border: 1px solid var(--gold); }
+  .leaflet-popup-tip { background: var(--gold); }
+  .leaflet-popup-content { margin: 12px 15px; font-size: 14px; }
+  .leaflet-popup-content b { color: var(--wine); font-family:'Playfair Display',serif; font-size: 16px; }
+  .leaflet-control-zoom a { background: var(--paper) !important; color: var(--ink) !important; border-color: var(--line) !important; }
+  .leaflet-control-zoom a:hover { background: var(--gold) !important; color:#fff !important; }
+  .leaflet-control-attribution { background: rgba(251,246,234,.85)!important; font-size: 9px!important; }
+  .pin {
+    width: 32px; height: 32px; border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg); border: 2px solid var(--paper);
+    box-shadow: 0 3px 9px rgba(0,0,0,.35);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .pin span { transform: rotate(45deg); font-family:'Playfair Display',serif; font-weight: 700; font-size: 15px; color: #fff; }
+  .pin.t-text { background: var(--wine); }
+  .pin.t-bio { background: var(--blue); }
+  .pin.t-both { background: var(--green); }
+
+  .legend { display:flex; gap: 22px; justify-content:center; flex-wrap: wrap; margin-top: 18px; font-size: 14px; }
+  .legend i { width: 12px; height: 12px; border-radius: 50%; display: inline-block; margin-right: 6px; vertical-align: middle; }
+
+  /* WALK */
+  .walk { max-width: 760px; margin: 0 auto; padding: 30px 24px 60px; }
+  .station { padding: 50px 0 14px; border-top: 1px solid var(--line); }
+  .station:first-child { border-top: none; }
+  .st-num { font-family:'Playfair Display',serif; font-size: 13px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); margin-bottom: 12px; }
+  .st-title { font-family:'Playfair Display',serif; font-size: 42px; font-weight: 600; line-height: 1.02; margin-bottom: 12px; }
+  .st-title em { font-style: italic; color: var(--wine); }
+  .st-addr { font-family:'Playfair Display',serif; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 22px; }
+  .station p { margin-bottom: 16px; text-align: justify; }
+  .verse {
+    font-family:'Cormorant Garamond',serif; font-style: italic;
+    font-size: 21px; line-height: 1.5; color: var(--ink);
+    background: var(--paper); border-left: 3px solid var(--gold);
+    padding: 18px 24px; margin: 24px 0; white-space: pre-line;
+  }
+  .verse cite { display:block; margin-top: 10px; font-size: 12px; font-style: normal; font-family:'Playfair Display',serif; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold); }
+  .word-box { background: var(--cream-2); border: 1px solid var(--line); padding: 18px 22px; margin: 22px 0; }
+  .word-box .w-term { font-family:'Playfair Display',serif; font-size: 20px; font-weight: 600; color: var(--wine); margin-bottom: 6px; }
+  .word-box .w-tag { font-family:'Playfair Display',serif; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); display: block; margin-bottom: 8px; }
+  .fact { background: rgba(168,132,44,0.08); border-left: 3px solid var(--gold); padding: 16px 20px; margin: 20px 0; }
+  .fact .f-tag { font-family:'Playfair Display',serif; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); display:block; margin-bottom: 8px; }
+  .fact p { font-size: 16px; margin-bottom: 10px; }
+  .fact p:last-child { margin-bottom: 0; }
+
+  /* RIDDLE */
+  .riddle { background: var(--ink); color: var(--cream); padding: 26px 30px; margin: 28px 0 10px; }
+  .riddle .r-tag { font-family:'Playfair Display',serif; font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--gold-light); margin-bottom: 14px; display:block; }
+  .riddle .r-q { font-family:'Cormorant Garamond',serif; font-size: 21px; font-style: italic; line-height: 1.4; margin-bottom: 20px; color: var(--paper); }
+  .riddle .r-input { display:flex; gap: 12px; align-items:center; flex-wrap: wrap; }
+  .riddle .r-input input { background: var(--paper); color: var(--ink); border: none; padding: 12px 16px; font-family:'Cormorant Garamond',serif; font-size: 20px; width: 240px; }
+  .riddle .r-input input:focus { outline: 2px solid var(--gold-light); }
+  .riddle .r-input button { background: var(--gold); color: #fff; border: none; padding: 13px 24px; font-family:'Playfair Display',serif; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; transition: background .2s; }
+  .riddle .r-input button:hover { background: var(--gold-light); }
+  .riddle .r-fb { margin-top: 14px; font-family:'Cormorant Garamond',serif; font-style: italic; font-size: 17px; min-height: 1.4em; }
+  .riddle .r-fb.ok { color: var(--gold-light); }
+  .riddle .r-fb.err { color: #e0a090; }
+  .riddle .r-letter { display:inline-block; font-family:'Playfair Display',serif; font-size: 24px; font-weight: 700; color: var(--ink); background: var(--gold-light); width: 42px; height: 42px; line-height: 42px; text-align:center; margin-left: 4px; }
+
+  /* TRANSITION */
+  .trans { margin: 8px 0; padding: 24px 26px; background: linear-gradient(90deg, rgba(168,132,44,.08), transparent); border-left: 2px solid var(--line); }
+  .trans .t-lab { font-family:'Playfair Display',serif; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); margin-bottom: 8px; }
+  .trans .t-lab b { color: var(--wine); }
+  .trans p { font-style: italic; color: var(--ink-soft); margin: 0; font-size: 16px; text-align: left; }
+
+  /* PASSWORD BAR */
+  .pwd-bar { position: fixed; bottom: 0; left:0; right:0; background: rgba(43,36,25,.97); border-top: 2px solid var(--gold); padding: 12px 16px; z-index: 1000; display:flex; align-items:center; justify-content:center; gap: 14px; transform: translateY(100%); transition: transform .4s; }
+  .pwd-bar.on { transform: translateY(0); }
+  .pwd-bar .lbl { font-family:'Playfair Display',serif; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--cream-2); }
+  .pwd-bar .slots { display:flex; gap: 5px; }
+  .pwd-bar .slot { width: 24px; height: 32px; border-bottom: 2px solid #6a5c40; font-family:'Playfair Display',serif; font-size: 22px; font-weight: 600; color: var(--gold-light); text-align:center; line-height: 30px; }
+  .pwd-bar .slot.filled { border-bottom-color: var(--gold-light); }
+
+  /* FINALE */
+  .finale { max-width: 720px; margin: 0 auto; padding: 30px 24px 90px; }
+  .fcard { background: var(--paper); border: 2px solid var(--gold); padding: 46px 40px; text-align: center; }
+  .fcard .f-tag { font-family:'Playfair Display',serif; font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--wine); margin-bottom: 18px; }
+  .fcard h2 { font-family:'Playfair Display',serif; font-size: 38px; font-weight: 600; margin-bottom: 18px; }
+  .fcard p { margin-bottom: 16px; }
+  .f-input { display:flex; gap: 12px; justify-content:center; flex-wrap: wrap; margin: 26px 0; }
+  .f-input input { background: var(--cream); color: var(--ink); border: 1px solid var(--gold); padding: 16px 22px; font-family:'Playfair Display',serif; font-size: 24px; letter-spacing: 0.2em; text-align:center; text-transform: uppercase; width: 320px; }
+  .f-input button { background: var(--gold); color: #fff; border: none; padding: 16px 26px; font-family:'Playfair Display',serif; font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; }
+  .f-reveal { display:none; margin-top: 26px; padding: 30px; background: var(--cream-2); border: 1px solid var(--gold); text-align: left; }
+  .f-reveal h3 { font-family:'Playfair Display',serif; font-style: italic; font-size: 28px; color: var(--wine); margin-bottom: 14px; }
+
+  /* FOOTER */
+  .foot { background: var(--cream-2); border-top: 1px solid var(--line); padding: 44px 24px; text-align: center; }
+  .foot p { max-width: 640px; margin: 0 auto 12px; font-size: 14px; color: var(--ink-soft); font-style: italic; }
+  .foot .src { font-family:'Playfair Display',serif; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--line); margin-top: 20px; }
+
+  @media (max-width: 640px) {
+    .hero h1 { font-size: 52px; }
+    .st-title { font-size: 30px; }
+    .verse { font-size: 19px; }
+    #map { height: 400px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="crest">❦</div>
+  <div class="kicker">Познавательный квест для тех, кто читает «Онегина» · 8–9 класс</div>
+  <h1>Онегинский<br><em>Петербургъ</em></h1>
+  <p class="sub">Пройти по «дню Онегина» из первой главы — и по реальным местам, где жил и гулял сам Пушкин</p>
+  <div class="epigraph">
+    «Так думал молодой повеса, / Летя в пыли на почтовых, / Всевышней волею Зевеса / Наследник всех своих родных…»
+    <b>А. С. Пушкин · Евгений Онегин, глава 1</b>
+  </div>
+  <div class="stats">
+    <div class="hstat"><b>10</b><span>точек</span></div>
+    <div class="hstat"><b>10</b><span>загадок</span></div>
+    <div class="hstat"><b>≈4,5</b><span>км</span></div>
+    <div class="hstat"><b>3–4</b><span>часа</span></div>
+  </div>
+  <div class="scroll">↓ начать прогулку</div>
+</section>
+
+<!-- INTRO -->
+<section class="intro">
+  <div style="text-align:center; color: var(--gold); font-size: 24px; letter-spacing: 0.4em; margin-bottom: 28px;">❧</div>
+  <h2>Что это за <em>прогулка</em></h2>
+  <p class="lead">Действие первой главы «Евгения Онегина» происходит зимой 1819 — весной 1820 года. Ровно в это время в Петербурге жил и сам Пушкин — после Лицея, до южной ссылки. Поэтому дом, набережная, ресторан, театр Онегина — это места, по которым ходил и сам поэт.</p>
+  <p>Маршрут построен по одному дню щёголя-денди из романа: проснулся, поехал на бульвар, пообедал у Talon, помчался в театр на балет. К этому добавлены настоящие пушкинские адреса той поры — Демутов трактир, где он писал роман, и Мойка, 12, где закончилась его жизнь. Получается двойная прогулка: по литературе и по биографии одновременно.</p>
+
+  <div class="howto">
+    <b>Как играть.</b> На каждой из десяти точек — загадка по тексту романа. Ответ — слово (имя героя, предмет, понятие). Система сама возьмёт из него нужную букву и добавит в пароль внизу экрана. Соберёшь все десять — узнаешь слово, которым в пушкинскую эпоху называли город. Подсказок к загадкам нет: это квест для тех, кто читал.
+  </div>
+
+  <div class="logi">
+    <h3>Логистика — по реальным улицам</h3>
+    <div class="row"><span>1 → 2 · Летний сад → Дворцовая набережная</span><span>5 мин</span></div>
+    <div class="row"><span>2 → 3 · Набережная → Миллионная</span><span>5 мин</span></div>
+    <div class="row"><span>3 → 4 · Миллионная → Дворцовая площадь</span><span>7 мин</span></div>
+    <div class="row"><span>4 → 5 · Площадь → Адмиралтейство</span><span>5 мин</span></div>
+    <div class="row"><span>5 → 6 · Адмиралтейство → Невский</span><span>5 мин</span></div>
+    <div class="row"><span>6 → 7 · Невский → ресторан Talon (Невский, 15)</span><span>5 мин</span></div>
+    <div class="row"><span>7 → 8 · Talon → Демутов трактир (Мойка, 40)</span><span>3 мин</span></div>
+    <div class="row"><span>8 → 9 · Демутов трактир → Мойка, 12</span><span>8 мин</span></div>
+    <div class="row"><span>9 → 10 · Мойка, 12 → Театральная площадь</span><span>18 мин</span></div>
+  </div>
+
+  <p style="font-size: 16px; color: var(--ink-soft);"><b style="font-family:'Playfair Display',serif; font-size: 12px; letter-spacing: 0.1em; color: var(--wine);">СОВЕТ.</b> Начни утром, чтобы успеть в музей-квартиру на Мойке, 12 (вход обычно до 17:00, выходной — вторник). Места отдыха и важные оговорки — в конце страницы.</p>
+</section>
+
+<!-- MAP -->
+<section class="mapwrap">
+  <h2>Карта маршрута</h2>
+  <p class="cap">Линия проложена в порядке точек 1 → 10. Цвет метки — тема точки.</p>
+  <div id="map"></div>
+  <div class="legend">
+    <span><i style="background:#7a2e2a"></i>Из текста романа</span>
+    <span><i style="background:#2f4a6b"></i>Биография Пушкина</span>
+    <span><i style="background:#4a6149"></i>И то, и другое</span>
+  </div>
+</section>
+
+<!-- WALK -->
+<section class="walk" id="walk"></section>
+
+<!-- FINALE -->
+<section class="finale">
+  <div class="fcard">
+    <div class="f-tag">Финал квеста</div>
+    <h2>Собери слово</h2>
+    <p>Десять загадок — десять букв. Вместе они складываются в слово, которым называли этот город во времена Пушкина — с буквой, которую потом отменили.</p>
+    <p style="font-style: italic; color: var(--ink-soft);">Введи слово целиком, когда соберёшь все буквы внизу экрана.</p>
+    <div class="f-input">
+      <input type="text" id="finalInput" maxlength="10" placeholder="? ? ? ? ? ? ? ? ? ?" autocomplete="off">
+      <button onclick="checkFinale()">Открыть</button>
+    </div>
+    <div class="f-reveal" id="fReveal">
+      <h3>Петербургъ</h3>
+      <p>Именно так — с твёрдым знаком (буква «еръ») на конце — писали название города до реформы орфографии 1918 года. В пушкинских изданиях «Онегина» стояло «Петербургъ», «Онѣгинъ», «поэтъ». Твёрдый знак в конце слов после согласных не читался, но был обязателен — его называли «самой дорогой буквой России», потому что он занимал место на миллионах страниц, ничего не обозначая.</p>
+      <p>Ты прошла весь день Онегина — от Летнего сада детства до театра, где танцевала Истомина, — и заодно главные адреса самого Пушкина. Карта романа и карта жизни поэта наложились друг на друга. Это и есть «онегинский Петербургъ».</p>
+      <p style="margin-top: 22px; font-family:'Cormorant Garamond',serif; font-style: italic; font-size: 20px; color: var(--wine);">«Город пышный, город бедный, / Дух неволи, стройный вид, / Свод небес зелёно-бледный, / Скука, холод и гранит…» — А. С. Пушкин</p>
+    </div>
+  </div>
+</section>
+
+<!-- PASSWORD BAR -->
+<div class="pwd-bar" id="pwdBar">
+  <span class="lbl">Пароль:</span>
+  <div class="slots" id="pwdSlots"></div>
+</div>
+
+<!-- FOOTER -->
+<footer class="foot">
+  <div style="color: var(--gold); font-size: 22px; letter-spacing: 0.4em;">※</div>
+  <p style="margin-top: 16px;"><b style="font-family:'Playfair Display',serif; font-size: 13px; color: var(--wine);">Где отдохнуть и перекусить.</b> На месте ресторана Talon (Невский, 15) сейчас отель «Талион» — можно выпить горячего шоколада, как денди XIX века. По Невскому много кафе; в Летнем саду — скамейки для начала прогулки; у Мойки, 12 во дворе — тихий дворик музея.</p>
+  <p>Материал собран по роману «Евгений Онегин», комментарию Ю. М. Лотмана, комментарию В. Набокова, материалам Всероссийского музея А. С. Пушкина (Мойка, 12), Wikipedia и краеведческим ресурсам.</p>
+  <p style="font-style: normal;"><b>Честные оговорки:</b> у «дома Онегина» нет точного адреса — Пушкин оставил его собирательным. Большой Каменный театр не сохранился — на его месте Консерватория. Александровская колонна (1834) и кони Клодта (1841) появились позже действия 1-й главы. Демутов трактир перестроен.</p>
+  <p class="src">Онегинский Петербургъ · познавательный квест · для читающих роман</p>
+</footer>
+
+<script>
+const stations = [
+  {
+    id: 1, theme: 'both',
+    title: "Летний <em>сад</em>",
+    subtitle: "Детство Онегина",
+    addr: "Летний сад · вход с Лебяжьей канавки",
+    coords: [59.9450, 30.3360],
+    verse: "Monsieur l'Abbé, француз убогой,\nЧтоб не измучилось дитя,\nУчил его всему шутя,\nНе докучал моралью строгой…\nИ в Летний сад гулять водил.",
+    cite: "Глава 1, строфа III",
+    paras: [
+      "Начнём, как начинается жизнь Онегина. В богатых дворянских семьях детей сперва воспитывала француженка-«мадам», потом гувернёр-француз. Учили шутя, по-настоящему — только французскому языку. Летний сад был главной «детской площадкой» петербургской знати: тихие аллеи, мраморные статуи, регулярный парк.",
+      "Заложил его Пётр I в 1704 году — это старейший сад города. Знаменитую невскую ограду построили в 1771–1784 годах: 36 гранитных колонн с вазами и кованые решётки. Поэт Батюшков восхищался её лёгкостью и стройностью."
+    ],
+    fact: { tag: "Легенда", paras: [
+      "По легенде, богатый англичанин приплыл на яхте полюбоваться оградой в белые ночи — и тут же повернул назад: ничего прекраснее он уже не надеялся увидеть.",
+      "Сам Пушкин, поселившись напротив сада в 1834 году, писал жене: «Летний сад — мой огород. Я, вставши ото сна, иду туда в халате и туфлях… Я в нём дома». Все статуи в саду сегодня — копии: оригиналы спрятали в Михайловский замок от непогоды."
+    ]},
+    riddle: { q: "На набережной у сада Онегин стоит «как описал себя» — Пушкин называет себя в романе старинным словом, означающим «поэт». Какое это слово?", answer: "ПИИТ", pos: 1 }
+  },
+  {
+    id: 2, theme: 'text',
+    title: "Дворцовая <em>набережная</em>",
+    subtitle: "«Опершися на гранит»",
+    addr: "Дворцовая наб., между Мраморным дворцом и Эрмитажем",
+    coords: [59.9425, 30.3185],
+    verse: "С душою, полной сожалений,\nИ опершися на гранит,\nСтоял задумчиво Евгений,\nКак описал себя пиит.",
+    cite: "Глава 1, строфа XLVIII",
+    paras: [
+      "Самая знаменитая петербургская сцена романа. Пушкин даёт две точные подсказки, где она происходит: герои опираются на гранит (значит, на парапет невской набережной), и слышен «дрожек отдалённый стук с Мильонной» — улицы за Мраморным дворцом. Значит, это Дворцовая набережная, напротив Петропавловской крепости.",
+      "Это поза романтика-мечтателя, модная в пушкинскую эпоху. Дворцовая набережная — первая в России, облицованная гранитом (по указу Екатерины II)."
+    ],
+    fact: { tag: "Забавный случай", paras: [
+      "В 1829 году художник Нотбек нарисовал к этой сцене картинку — но перенёс её совсем в другое место города и повернул Пушкина с Онегиным лицом к зрителю. Поэт рассердился и ответил язвительной шуткой-эпиграммой. Так он сам как бы «подтвердил», где на самом деле стоит сцена — на Дворцовой набережной."
+    ]},
+    riddle: { q: "На брегах какой реки стоит весь пушкинский Петербург и происходит эта сцена? Назови реку.", answer: "НЕВА", pos: 2 }
+  },
+  {
+    id: 3, theme: 'bio',
+    title: "Миллионная <em>улица</em>",
+    subtitle: "«Дрожек отдалённый стук»",
+    addr: "Миллионная ул.",
+    coords: [59.9418, 30.3245],
+    verse: "Всё было тихо; лишь ночные\nПерекликались часовые,\nДа дрожек отдалённый стук\nС Мильонной раздавался вдруг…",
+    cite: "Глава 1, строфа XLVIII",
+    paras: [
+      "Одна из самых аристократических улиц пушкинского Петербурга: дома знати, гвардейские казармы, кареты вельмож. «Дрожки» — лёгкая открытая повозка. Их стук поздней ночью — это знать возвращается с балов.",
+      "На Миллионной, 30 был салон княгини Авдотьи Голицыной — «ночной княгини»: она принимала гостей только по ночам, потому что цыганка предсказала ей смерть во сне. В неё Пушкин был влюблён в 1817–1819 годах."
+    ],
+    fact: { tag: "Деталь", paras: [
+      "В пушкинскую эпоху статуи и мраморные изваяния украшали и улицы, и парки знати. Богатый дом узнавали по скульптурам у входа и в нишах фасада — это был знак вкуса и достатка хозяина."
+    ]},
+    riddle: { q: "Чем — кроме колонн и ваз — была знаменита ограда Летнего сада и фасады богатых домов знати? Мраморное изваяние человека или божества называется одним словом. Каким?", answer: "СТАТУЯ", pos: 2 }
+  },
+  {
+    id: 4, theme: 'both',
+    title: "Дворцовая <em>площадь</em>",
+    subtitle: "Александровская колонна",
+    addr: "Дворцовая площадь",
+    coords: [59.9387, 30.3158],
+    verse: "Вознёсся выше он главою непокорной\nАлександрийского столпа.",
+    cite: "А. С. Пушкин, «Памятник», 1836",
+    paras: [
+      "Главная парадная площадь Петербурга — фон балов и парадов онегинской поры. Александровская колонна (Пушкин в «Памятнике» зовёт её «Александрийский столп») поставлена в 1834 году в честь победы над Наполеоном. Высота 47,5 м — самая высокая в мире колонна из цельного гранита.",
+      "Колонна не врыта в землю и ничем не закреплена — держится только за счёт собственного веса (более 600 тонн) и точнейшего расчёта архитектора Монферрана."
+    ],
+    fact: { tag: "Легенда", paras: [
+      "Петербуржцы боялись ходить рядом — вдруг рухнет? Чтобы убедить горожан в надёжности, Монферран до конца жизни каждый день прогуливался у подножия колонны.",
+      "В шаре под фигурой ангела на вершине заложен ларец с монетами и документами. В 1977 году туда добавили проект Конституции СССР."
+    ]},
+    riddle: { q: "На вершине колонны стоит фигура, простирающая руку и крест к облакам. Куда устремлён её взгляд и крест — одно слово, обозначающее всё, что над нами и куда «вознёсся» поэт?", answer: "НЕБО", pos: 2 }
+  },
+  {
+    id: 5, theme: 'both',
+    title: "<em>Адмиралтейство</em>",
+    subtitle: "«Адмиралтейская игла»",
+    addr: "Адмиралтейский пр., 1",
+    coords: [59.9388, 30.3094],
+    verse: "…И не пуская тьму ночную\nНа золотые небеса,\nОдна заря сменить другую\nСпешит, дав ночи полчаса.",
+    cite: "А. С. Пушкин, «Медный всадник» (о белых ночах)",
+    paras: [
+      "Главный ориентир Петербурга Онегина. Вдоль Адмиралтейства шёл бульвар (теперь Александровский сад) — по нему и катался утром модный денди: «Надев широкий боливар, Онегин едет на бульвар».",
+      "Адмиралтейство заложил Пётр I в 1704 году как корабельную верфь. Золотой шпиль (72 метра) с корабликом-флюгером — символ города. От Адмиралтейства лучами расходятся три главные улицы: Невский, Гороховая, Вознесенский."
+    ],
+    fact: { tag: "Тайна шпиля", paras: [
+      "По легенде, в кораблике на вершине хранилась личная буссоль (компас) Петра I. В 1816 году оригинальный кораблик заменили копией — и куда делся старый вместе с компасом, никто не знает.",
+      "В позолоченном шаре под корабликом — ларец со сведениями обо всех мастерах, когда-либо ремонтировавших шпиль."
+    ]},
+    riddle: { q: "Что за маленькая золотая фигурка вращается флюгером на вершине шпиля Адмиралтейства и стала символом Петербурга? Назови её ласково, одним словом — как называют маленькое судно.", answer: "КОРАБЛИК", pos: 3 }
+  },
+  {
+    id: 6, theme: 'text',
+    title: "Невский <em>проспект</em>",
+    subtitle: "Бульвар денди",
+    addr: "Невский пр. (от Адмиралтейства до Мойки)",
+    coords: [59.9360, 30.3200],
+    verse: "Покамест в утреннем уборе,\nНадев широкий боливар,\nОнегин едет на бульвар\nИ там гуляет на просторе,\nПока недремлющий брегет\nНе прозвонит ему обед.",
+    cite: "Глава 1, строфа XV",
+    paras: [
+      "В пушкинское время посреди Невского — между Полицейским (Зелёным) и Аничковым мостами — был бульвар с деревьями. По нему гуляла знать: показать себя и посмотреть других. Сюда и едет Онегин по утрам.",
+      "Здесь же — главный «учебник моды» романа. Онегин одет «как dandy лондонский». Денди — это не просто щёголь: главное в нём холодная сдержанность, ирония, умение не удивляться. Английский стиль был противоположностью пышной французской моды."
+    ],
+    word: { tag: "Объясняем слово", term: "Боливар", text: "Широкополая шляпа-цилиндр, названная по имени Симона Боливара — борца за свободу Южной Америки. Носить «боливар» значило заявить о вольнолюбивых, либеральных взглядах. Такую шляпу носил и сам Пушкин." },
+    fact: { tag: "Ещё одно слово", paras: [
+      "«Недремлющий брегет» — дорогие карманные часы с боем парижской фирмы Брегé. Они отбивали часы и четверти и могли будить хозяина — поэтому «недремлющий». Стоили целое состояние и были знаком статуса."
+    ]},
+    riddle: { q: "Как называется широкополая модная шляпа, которую Онегин надевает, выезжая на бульвар, — названная в честь южноамериканского борца за свободу?", answer: "БОЛИВАР", pos: 1 }
+  },
+  {
+    id: 7, theme: 'text',
+    title: "Ресторан <em>Talon</em>",
+    subtitle: "Обед денди",
+    addr: "Невский пр., 15 (дом Чичерина)",
+    coords: [59.9381, 30.3168],
+    verse: "К Talon помчался: он уверен,\nЧто там уж ждёт его Каверин.\nВошёл: и пробка в потолок,\nВина кометы брызнул ток;\nПред ним roast-beef окровавленный,\nИ трюфли, роскошь юных лет…",
+    cite: "Глава 1, строфа XVI",
+    paras: [
+      "Один из первых французских ресторанов Петербурга, работал на Невском, 15 примерно с 1814 по 1825 год. Считался самым престижным в городе — поражал и кухней, и ценами. Сейчас на этом месте отель «Талион».",
+      "Меню в строфе — целый урок гастрономии 1820-х: «вино кометы» (шампанское урожая 1811 года, когда на небе видели комету — знак особого урожая), roast-beef с кровью (модная английская новинка), трюфели, страсбургский пирог из гусиной печёнки, живой лимбургский сыр и золотой ананас — символ роскоши."
+    ],
+    word: { tag: "Кто это", term: "Каверин", text: "Пётр Каверин (1794–1855) — реальный друг Пушкина, лихой гусар, кутила и весельчак, член тайных обществ. Пушкин посвятил ему стихи. Любопытно: советский писатель Вениамин Каверин (автор «Двух капитанов») взял свой псевдоним именно по фамилии этого пушкинского гусара." },
+    fact: { tag: "Факт", paras: [
+      "Пушкин поставил к фамилии Каверина сноску, а Talon назвал «известным ресторатором». Литературоведы шутят, что это первая «скрытая реклама» в русской литературе — Пушкин называл реальные модные места и людей, которых читатели сразу узнавали."
+    ]},
+    riddle: { q: "Имя реального друга Пушкина — лихого гусара, который «уж ждёт» Онегина в ресторане Talon. Назови его фамилию.", answer: "КАВЕРИН", pos: 5 }
+  },
+  {
+    id: 8, theme: 'bio',
+    title: "Демутов <em>трактир</em>",
+    subtitle: "Где Пушкин писал роман",
+    addr: "наб. Мойки, 40 / Большая Конюшенная, 27",
+    coords: [59.9388, 30.3245],
+    verse: "Янтарь на трубках Цареграда,\nФарфор и бронза на столе,\nИ, чувств изнеженных отрада,\nДухи в гранёном хрустале…",
+    cite: "Глава 1, строфа XXIV (кабинет Онегина)",
+    paras: [
+      "Не место из текста, а место его написания. Демутов трактир — лучшая гостиница пушкинского Петербурга. Здесь в 1827–1831 годах в 10-м номере Пушкин работал над «Евгением Онегиным», за три недели написал «Полтаву».",
+      "Главный секрет: в этой же гостинице долго жил Пётр Чаадаев — близкий друг Пушкина, философ. Считается, что именно роскошный кабинет Чаадаева Пушкин описал как кабинет Онегина — с трубками, фарфором, бронзой и духами."
+    ],
+    word: { tag: "Объясняем слово", term: "Трубки Цареграда", text: "«Цареград» — старое русское название Стамбула (Константинополя). Курительные трубки с янтарными мундштуками привозили с Востока через Турцию — это была дорогая модная вещь в кабинете щёголя. У Онегина (и у Чаадаева) такие трубки украшали стол." },
+    fact: { tag: "Кто здесь бывал", paras: [
+      "В Демутовом трактире останавливались Грибоедов, Батюшков, Тургенев, Герцен. Гоголь специально пришёл сюда знакомиться с Пушкиным — но лакей сказал, что хозяин спит, потому что «всю ночь в картишки играл»."
+    ]},
+    riddle: { q: "Что курили в кабинете Онегина и его прототипа Чаадаева — предмет с янтарным мундштуком, привозимый с Востока? Назови предмет (то, что набивают табаком).", answer: "ТРУБКА", pos: 3 }
+  },
+  {
+    id: 9, theme: 'bio',
+    title: "Мойка, <em>12</em>",
+    subtitle: "Последняя квартира Пушкина",
+    addr: "наб. реки Мойки, 12 · музей-квартира",
+    coords: [59.9404, 30.3205],
+    verse: "Куда ж нам плыть?.. …\nНо так и быть: расстанемся, друзья!",
+    cite: "Из последней, 8-й главы «Онегина»",
+    paras: [
+      "Финал биографии. В этот дом княгини Волконской Пушкин въехал с семьёй в сентябре 1836 года. Отсюда 27 января 1837 года он отправился на дуэль с Дантесом на Чёрной речке. Сюда же его привезли смертельно раненым, и здесь он умер 29 января (10 февраля) 1837 года.",
+      "Сейчас это музей-квартира. Сохранены подлинные вещи: кабинет, вольтеровское кресло, чернильница с фигуркой арапчонка (намёк на африканского предка поэта), жилет со следами крови, каминные часы, остановленные в момент смерти — 2 часа 45 минут."
+    ],
+    word: { tag: "Что увидеть", term: "Локон и часы", text: "В музее хранятся локон волос Пушкина, его посмертная маска и часы, стрелки которых остановили в минуту его смерти. На стене — портрет, подаренный учителем Жуковским с надписью: «Победителю-ученику от побеждённого учителя»." },
+    fact: { tag: "Слова Ахматовой", paras: [
+      "Поэт Анна Ахматова сказала об этом доме: «Его дом стал святыней для его Родины… Вся эпоха мало-помалу стала называться пушкинской. Он победил и время, и пространство»."
+    ]},
+    riddle: { q: "Карманные часы с боем, по которым Онегин узнаёт время обеда и начала балета («недремлющий ___»), — и такие же часы остановлены в музее в минуту смерти Пушкина. Назови это слово (марка часов стала их названием).", answer: "БРЕГЕТ", pos: 4 }
+  },
+  {
+    id: 10, theme: 'text',
+    title: "Большой <em>Каменный театр</em>",
+    subtitle: "Балет Истоминой",
+    addr: "Театральная пл., 3 (ныне Консерватория)",
+    coords: [59.9255, 30.2960],
+    verse: "Блистательна, полувоздушна,\nСмычку волшебному послушна,\nТолпою нимф окружена,\nСтоит Истомина…\nИ вдруг прыжок, и вдруг летит,\nЛетит, как пух от уст Эола.",
+    cite: "Глава 1, строфа XX",
+    paras: [
+      "Финал «дня Онегина»: из ресторана он мчится в театр на балет. Здесь стоял Большой Каменный театр — первое каменное театральное здание города (1783, перестроен в 1818). Из этого восстановленного театра и «полетел» Онегин. В 1896 году здание перестроили в Консерваторию, которая стоит здесь и сейчас.",
+      "Авдотья Истомина (1799–1848) — настоящая звезда петербургского балета, ученица хореографа Дидло, одна из первых русских балерин на пуантах. Пушкин знал её лично. Из-за неё в 1817 году случилась знаменитая «четверная дуэль» — стрелялись четверо мужчин."
+    ],
+    word: { tag: "Объясняем слово", term: "Раёк, партер, ложи", text: "«Театр уж полон; ложи блещут» — ложи это отдельные балкончики для знатных семей; партер — кресла перед сценой; раёк — самые дешёвые места под потолком для простой публики. Денди вроде Онегина сидели в партере и рассматривали дам в ложах через двойной лорнет — складной театральный бинокль." },
+    fact: { tag: "Рядом", paras: [
+      "В двух шагах отсюда, в доме Всеволожского, собиралась «Зелёная лампа» — литературно-театральное общество Пушкина, Дельвига и Каверина. Названо по зелёному абажуру лампы, девиз — «Свет и надежда!». Там обсуждали театр, стихи и политику."
+    ]},
+    riddle: { q: "Город, по которому ты гуляешь, в пушкинскую эпоху писали особым образом — с буквой на конце, которую отменили в 1918 году. Эта буква называется «твёрдый знак». Введи саму эту букву.", answer: "Ъ", literal: true }
+  }
+];
+
+const transitions = [
+  null,
+  { time: '5 мин', text: 'Из Летнего сада выйди к Неве и поверни по Дворцовой набережной к Зимнему дворцу. Слева будет Мраморный дворец.' },
+  { time: '5 мин', text: 'От набережной нырни в арку у Мраморного дворца — выйдешь на Миллионную улицу, где слышен «дрожек отдалённый стук».' },
+  { time: '7 мин', text: 'По Миллионной дойди до Дворцовой площади. Перед тобой развернётся Зимний дворец, Главный штаб и колонна в центре.' },
+  { time: '5 мин', text: 'Пересеки площадь к Адмиралтейству — низкому жёлто-белому зданию с золотым шпилем.' },
+  { time: '5 мин', text: 'От Адмиралтейства выходи на Невский проспект — главную улицу города, «бульвар» Онегина.' },
+  { time: '5 мин', text: 'Иди по Невскому до дома № 15 (на углу с Большой Морской) — здесь был ресторан Talon.' },
+  { time: '3 мин', text: 'От Talon сверни к Мойке — Демутов трактир (Мойка, 40) совсем рядом, буквально соседний квартал.' },
+  { time: '8 мин', text: 'По набережной Мойки дойди до дома № 12 — последней квартиры Пушкина. Вода Мойки будет с одной стороны всю дорогу.' },
+  { time: '18 мин', text: 'От Мойки, 12 через Поцелуев мост и дальше к Театральной площади — финальной точке, где стоял театр Онегина.' }
+];
+
+// Render
+const walk = document.getElementById('walk');
+const themeClass = { text:'t-text', bio:'t-bio', both:'t-both' };
+const themeLabel = { text:'Из романа', bio:'Биография Пушкина', both:'Роман и биография' };
+
+stations.forEach((st, idx) => {
+  if (idx > 0 && transitions[idx]) {
+    const tr = document.createElement('div');
+    tr.className = 'trans';
+    tr.innerHTML = `<div class="t-lab">Переход · <b>${transitions[idx].time}</b></div><p>${transitions[idx].text}</p>`;
+    walk.appendChild(tr);
+  }
+  const sec = document.createElement('div');
+  sec.className = 'station';
+  let html = `
+    <div class="st-num">Точка ${st.id} · ${themeLabel[st.theme]}</div>
+    <h2 class="st-title">${st.title}</h2>
+    <div class="st-addr">${st.subtitle} · ${st.addr}</div>
+    <div class="verse">${st.verse}<cite>${st.cite}</cite></div>
+  `;
+  st.paras.forEach(p => html += `<p>${p}</p>`);
+  if (st.word) html += `<div class="word-box"><span class="w-tag">${st.word.tag}</span><div class="w-term">${st.word.term}</div><p style="margin:0;">${st.word.text}</p></div>`;
+  if (st.fact) {
+    html += `<div class="fact"><span class="f-tag">${st.fact.tag}</span>`;
+    st.fact.paras.forEach(p => html += `<p>${p}</p>`);
+    html += `</div>`;
+  }
+  html += `
+    <div class="riddle" id="riddle-${st.id}">
+      <span class="r-tag">Загадка ${st.id} · буква пароля</span>
+      <div class="r-q">${st.riddle.q}</div>
+      <div class="r-input">
+        <input type="text" id="rin-${st.id}" placeholder="ответ" autocomplete="off">
+        <button onclick="checkRiddle(${st.id})">Разгадать</button>
+      </div>
+      <div class="r-fb" id="rfb-${st.id}"></div>
+    </div>
+  `;
+  sec.innerHTML = html;
+  walk.appendChild(sec);
+});
+
+// Map
+const map = L.map('map', { zoomControl: true }).setView([59.937, 30.315], 14);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+  attribution: '&copy; OpenStreetMap &copy; CARTO', subdomains: 'abcd', maxZoom: 19
+}).addTo(map);
+const routeCoords = stations.map(s => s.coords);
+L.polyline(routeCoords, { color: '#a8842c', weight: 3, opacity: 0.8, dashArray: '3, 7', lineCap: 'round' }).addTo(map);
+stations.forEach(st => {
+  const icon = L.divIcon({ className:'', html: `<div class="pin ${themeClass[st.theme]}"><span>${st.id}</span></div>`, iconSize:[32,32], iconAnchor:[16,32] });
+  L.marker(st.coords, { icon }).addTo(map).bindPopup(`<b>${st.id}. ${st.title.replace(/<[^>]+>/g,'')}</b><br>${st.addr}`);
+});
+map.fitBounds(L.latLngBounds(routeCoords), { padding: [50, 50] });
+
+// Quest logic
+const PASSWORD = 'ПЕТЕРБУРГЪ';
+const collected = stations.map(() => null);
+const normalize = s => (s||'').trim().toUpperCase().replace(/Ё/g,'Е');
+
+function renderPwd() {
+  const slots = document.getElementById('pwdSlots');
+  slots.innerHTML = '';
+  let any = false;
+  PASSWORD.split('').forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'slot';
+    if (collected[i]) { d.textContent = collected[i]; d.classList.add('filled'); any = true; }
+    slots.appendChild(d);
+  });
+  if (any) document.getElementById('pwdBar').classList.add('on');
+}
+
+function checkRiddle(id) {
+  const st = stations.find(s => s.id === id);
+  const input = document.getElementById(`rin-${id}`);
+  const fb = document.getElementById(`rfb-${id}`);
+  const guess = normalize(input.value);
+  const answer = normalize(st.riddle.answer);
+  if (!guess) { fb.className='r-fb err'; fb.textContent='Впиши ответ.'; return; }
+  // accept some synonyms for the hard sign riddle
+  let correct = guess === answer;
+  if (st.riddle.literal && (guess === 'Ъ' || guess === 'ТВЕРДЫЙ ЗНАК' || guess === 'ТВЁРДЫЙ ЗНАК' || guess === 'ЕР')) correct = true;
+  if (correct) {
+    const letter = st.riddle.literal ? 'Ъ' : normalize(st.riddle.answer)[st.riddle.pos - 1];
+    collected[id - 1] = letter;
+    fb.className = 'r-fb ok';
+    fb.innerHTML = `Верно! Буква <span class="r-letter">${letter}</span> встаёт на ${id}-е место пароля.`;
+    input.disabled = true;
+    renderPwd();
+  } else {
+    fb.className = 'r-fb err';
+    fb.textContent = 'Не то. Вспомни текст романа и попробуй снова.';
+  }
+}
+
+function checkFinale() {
+  const input = document.getElementById('finalInput');
+  if (normalize(input.value) === normalize(PASSWORD)) {
+    document.getElementById('fReveal').style.display = 'block';
+    input.disabled = true;
+    document.getElementById('fReveal').scrollIntoView({ behavior:'smooth', block:'center' });
+  } else {
+    const fr = document.getElementById('fReveal');
+    fr.style.display = 'block';
+    fr.innerHTML = '<p style="color: var(--wine); font-style: italic; margin:0;">Пока не сходится. Собери все десять букв на точках и проверь порядок.</p>';
+    setTimeout(() => { if (normalize(input.value) !== normalize(PASSWORD)) fr.style.display='none'; }, 4000);
+  }
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.target.id && e.target.id.startsWith('rin-')) checkRiddle(parseInt(e.target.id.split('-')[1]));
+  if (e.key === 'Enter' && e.target.id === 'finalInput') checkFinale();
+});
+
+renderPwd();
+</script>
+</body>
+</html>
